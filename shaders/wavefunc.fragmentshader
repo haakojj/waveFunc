@@ -1,0 +1,33 @@
+#version 330 core
+
+// Interpolated values from the vertex shaders
+in vec2 UV;
+
+// Ouput data
+layout(location = 0) out float color;
+
+// Values that stay constant for the whole mesh.
+uniform sampler2D currentStateSampler;
+uniform sampler2D oldStateSampler;
+uniform float dt;
+
+void main() {
+	float d = 1024.0*length(UV - vec2(0.5, 0.5));
+	if (d < 400.0) {
+		float c = 10.0;
+		if (d < 100.0) {c = 5.0;}
+		
+		vec2 dx = vec2(1.0/1024.0, 0.0);
+		vec2 dy = vec2(0.0, 1.0/1024.0);
+		
+		float laplace = -4.0 * texture( currentStateSampler, UV ).x;
+		laplace += texture( currentStateSampler, UV + dx).x;
+		laplace += texture( currentStateSampler, UV - dx).x;
+		laplace += texture( currentStateSampler, UV + dy).x;
+		laplace += texture( currentStateSampler, UV - dy).x;
+		color =  2.0*texture( currentStateSampler, UV ).x - texture( oldStateSampler, UV ).x + c*c*laplace*dt*dt;
+	}
+	else {
+		color = 0.0;
+	}
+}
